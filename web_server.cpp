@@ -1,12 +1,10 @@
 #include "server_http.hpp"
-#include "client_http.hpp"
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <vector>
 #include <algorithm>
 using namespace std;
 typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
-typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
 
 void default_resource_send(const HttpServer &server, const shared_ptr<HttpServer::Response> &response,
                            const shared_ptr<ifstream> &ifs);
@@ -50,8 +48,6 @@ int main() {
     });
     this_thread::sleep_for(chrono::seconds(1));
     
-    HttpClient client("localhost:8080");
-    auto r1=client.request("GET", "/match/123");
     cout << "SUCCESS" << endl;
 
     server_thread.join();
