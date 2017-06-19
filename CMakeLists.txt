@@ -19,4 +19,4 @@ target_link_libraries(web_server ${CMAKE_THREAD_LIBS_INIT})
 
 enable_testing()
 
-install(FILES server_http.hpp client_http.hpp DESTINATION include/web-server)
+install(FILES server_http.hpp DESTINATION include/web-server)
