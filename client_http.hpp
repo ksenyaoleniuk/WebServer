@@ -7,18 +7,6 @@
 #include <mutex>
 #include <type_traits>
 
-#ifdef USE_STANDALONE_ASIO
-#include <boost/utility/string_ref.hpp>
-#include <asio.hpp>
-#include <type_traits>
-#include <system_error>
-namespace SimpleWeb {
-    using error_code = std::error_code;
-    using errc = std::errc;
-    using system_error = std::system_error;
-    namespace make_error_code = std;
-}
-#else
 #include <boost/asio.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -30,7 +18,7 @@ namespace SimpleWeb {
     using system_error = boost::system::system_error;
     namespace make_error_code = boost::system::errc;
 }
-#endif
+
 
 # ifndef CASE_INSENSITIVE_EQUAL_AND_HASH
 # define CASE_INSENSITIVE_EQUAL_AND_HASH
