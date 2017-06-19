@@ -19,52 +19,8 @@ int main() {
     HttpServer server;
     server.config.port=8080;
     
-    //Add resources using path-regex and method-string, and an anonymous function
-    //POST-example for the path /string, responds the posted string
-    server.resource["^/string$"]["POST"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
-        //Retrieve string:
-        auto content=request->content.string();
-        //request->content.string() is a convenience function for:
-        //stringstream ss;
-        //ss << request->content.rdbuf();
-        //string content=ss.str();
-        
-        *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n" << content;
-    };
-
-
-    //GET-example for the path /info
-    //Responds with request-information
-    server.resource["^/info$"]["GET"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
-        stringstream content_stream;
-        content_stream << "<h1>Request from " << request->remote_endpoint_address << " (" << request->remote_endpoint_port << ")</h1>";
-        content_stream << request->method << " " << request->path << " HTTP/" << request->http_version << "<br>";
-        for(auto& header: request->header) {
-            content_stream << header.first << ": " << header.second << "<br>";
-        }
-        
-        //find length of content_stream (length received using content_stream.tellp())
-        content_stream.seekp(0, ios::end);
-        
-        *response <<  "HTTP/1.1 200 OK\r\nContent-Length: " << content_stream.tellp() << "\r\n\r\n" << content_stream.rdbuf();
-    };
     
-    //GET-example for the path /match/[number], responds with the matched string in path (number)
-    //For instance a request GET /match/123 will receive: 123
-    server.resource["^/match/([0-9]+)$"]["GET"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
-        string number=request->path_match[1];
-        *response << "HTTP/1.1 200 OK\r\nContent-Length: " << number.length() << "\r\n\r\n" << number;
-    };
-    
-    //Get example simulating heavy work in a separate thread
-    server.resource["^/work$"]["GET"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> /*request*/) {
-        thread work_thread([response] {
-            this_thread::sleep_for(chrono::seconds(5));
-            string message="Work done";
-            *response << "HTTP/1.1 200 OK\r\nContent-Length: " << message.length() << "\r\n\r\n" << message;
-        });
-        work_thread.detach();
-    };
+
     
     //Default GET-example. If no other matches, this anonymous function will be called. 
     //Will respond with content in the web/-directory, and its subdirectories.
@@ -114,7 +70,6 @@ int main() {
     //Client examples
     HttpClient client("localhost:8080");
     auto r1=client.request("GET", "/match/123");
-    cout << r1->content.rdbuf() << endl;
     cout << "SUCCESS" << endl;
 
 
