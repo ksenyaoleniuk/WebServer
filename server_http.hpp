@@ -45,6 +45,7 @@ namespace SimpleWeb {
     };
 }
 # endif
+
 #include <regex>
 namespace SimpleWeb {
     namespace regex = std;
@@ -120,36 +121,8 @@ namespace SimpleWeb {
             
             std::string remote_endpoint_address;
             unsigned short remote_endpoint_port;
-            
-            /// Returns query keys with percent-decoded values.
-            std::unordered_multimap<std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual> parse_query_string() {
-                std::unordered_multimap<std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual> result;
-                auto qs_start_pos = path.find('?');
-                if (qs_start_pos != std::string::npos && qs_start_pos + 1 < path.size()) {
-                    ++qs_start_pos;
-                    static regex::regex pattern("([\\w+%]+)=?([^&]*)");
-                    int submatches[] = {1, 2};
-                    auto it_begin = regex::sregex_token_iterator(path.begin() + qs_start_pos, path.end(), pattern, submatches);
-                    auto it_end = regex::sregex_token_iterator();
-                    for (auto it = it_begin; it != it_end; ++it) {
-                        auto submatch1=it->str();
-                        auto submatch2=(++it)->str();
-                        auto query_it = result.emplace(submatch1, submatch2);
-                        auto &value = query_it->second;
-                        for (size_t c = 0; c < value.size(); ++c) {
-                            if (value[c] == '+')
-                                value[c] = ' ';
-                            else if (value[c] == '%' && c + 2 < value.size()) {
-                                auto hex = value.substr(c + 1, 2);
-                                auto chr = static_cast<char>(std::strtol(hex.c_str(), nullptr, 16));
-                                value.replace(c, 3, &chr, 1);
-                            }
-                        }
-                    }
-                }
-                return result;
-            }
-
+         
+           
         private:
             Request(const socket_type &socket): content(streambuf) {
                 try {
