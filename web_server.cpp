@@ -19,9 +19,6 @@ int main() {
     HttpServer server;
     server.config.port=8080;
     
-    
-
-    
     //Default GET-example. If no other matches, this anonymous function will be called. 
     //Will respond with content in the web/-directory, and its subdirectories.
     //Default file: index.html
