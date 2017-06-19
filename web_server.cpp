@@ -4,25 +4,18 @@
 #include <boost/filesystem.hpp>
 #include <vector>
 #include <algorithm>
-
 using namespace std;
-
 typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
 typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
 
-//Added for the default_resource example
 void default_resource_send(const HttpServer &server, const shared_ptr<HttpServer::Response> &response,
                            const shared_ptr<ifstream> &ifs);
 
 int main() {
-    //HTTP-server at port 8080 
     HttpServer server;
     server.config.port=8080;
     
-    //Default GET-example. If no other matches, this anonymous function will be called. 
-    //Will respond with content in the web/-directory, and its subdirectories.
-    //Default file: index.html
-    //Can for instance be used to retrieve an HTML 5 client that uses REST-resources on this server
+    //GET-example.
     server.default_resource["GET"]=[&server](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         try {
             auto web_root_path=boost::filesystem::canonical("web");
@@ -34,9 +27,6 @@ int main() {
             if(boost::filesystem::is_directory(path))
                 path/="index.html";
 
-            std::string cache_control, etag;
-
-
             auto ifs=make_shared<ifstream>();
             ifs->open(path.string(), ifstream::in | ios::binary | ios::ate);
             
@@ -44,7 +34,7 @@ int main() {
                 auto length=ifs->tellg();
                 ifs->seekg(0, ios::beg);
                 
-                *response << "HTTP/1.1 200 OK\r\n" << cache_control << etag << "Content-Length: " << length << "\r\n\r\n";
+                *response << "HTTP/1.1 200 OK\r\n" << "Content-Length: " << length << "\r\n\r\n";
                 default_resource_send(server, response, ifs);
             }
             else
@@ -55,23 +45,16 @@ int main() {
             *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << content.length() << "\r\n\r\n" << content;
         }
     };
-    
     thread server_thread([&server](){
-        //Start server
         server.start();
     });
-    
-    //Wait for server to start so that the client can connect
     this_thread::sleep_for(chrono::seconds(1));
     
-    //Client examples
     HttpClient client("localhost:8080");
     auto r1=client.request("GET", "/match/123");
     cout << "SUCCESS" << endl;
 
-
     server_thread.join();
-    
     return 0;
 }
 
