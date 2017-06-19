@@ -1,23 +1,11 @@
 #include "server_http.hpp"
 #include "client_http.hpp"
-
-//Added for the json-example
-#define BOOST_SPIRIT_THREADSAFE
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-//Added for the default_resource example
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <vector>
 #include <algorithm>
-#ifdef HAVE_OPENSSL
-#include "crypto.hpp"
-#endif
 
 using namespace std;
-//Added for the json-example:
-using namespace boost::property_tree;
 
 typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
 typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
