@@ -8,15 +8,6 @@
 #include <iostream>
 #include <sstream>
 
-#ifdef USE_STANDALONE_ASIO
-#include <asio.hpp>
-#include <type_traits>
-namespace SimpleWeb {
-    using error_code = std::error_code;
-    using errc = std::errc;
-    namespace make_error_code = std;
-}
-#else
 #include <boost/asio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/functional/hash.hpp>
@@ -26,7 +17,6 @@ namespace SimpleWeb {
     namespace errc = boost::system::errc;
     namespace make_error_code = boost::system::errc;
 }
-#endif
 
 # ifndef CASE_INSENSITIVE_EQUAL_AND_HASH
 # define CASE_INSENSITIVE_EQUAL_AND_HASH
@@ -43,7 +33,6 @@ namespace SimpleWeb {
             return case_insensitive_equal(str1, str2);
         }
     };
-    // Based on https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/2595226#2595226
     class CaseInsensitiveHash {
     public:
         size_t operator()(const std::string &str) const {
@@ -56,21 +45,11 @@ namespace SimpleWeb {
     };
 }
 # endif
-
-// Late 2017 TODO: remove the following checks and always use std::regex
-#ifdef USE_BOOST_REGEX
-#include <boost/regex.hpp>
-namespace SimpleWeb {
-    namespace regex = boost;
-}
-#else
 #include <regex>
 namespace SimpleWeb {
     namespace regex = std;
 }
-#endif
 
-// TODO when switching to c++14, use [[deprecated]] instead
 #ifndef DEPRECATED
 #ifdef __GNUC__
 #define DEPRECATED __attribute__((deprecated))
@@ -248,14 +227,7 @@ namespace SimpleWeb {
             acceptor->listen();
      
             accept(); 
-            
-            //If thread_pool_size>1, start m_io_service.run() in (thread_pool_size-1) threads for thread-pooling
-            threads.clear();
-            for(size_t c=1;c<config.thread_pool_size;c++) {
-                threads.emplace_back([this]() {
-                    io_service->run();
-                });
-            }
+
 
             //Main thread
             if(config.thread_pool_size>0)
