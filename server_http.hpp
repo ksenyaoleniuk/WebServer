@@ -163,11 +163,7 @@ namespace SimpleWeb {
                 io_service->reset();
 
             asio::ip::tcp::endpoint endpoint;
-            if(config.address.size()>0)
-                endpoint=asio::ip::tcp::endpoint(asio::ip::address::from_string(config.address), config.port);
-            else
-                endpoint=asio::ip::tcp::endpoint(asio::ip::tcp::v4(), config.port);
-            
+            endpoint=asio::ip::tcp::endpoint(asio::ip::address::from_string(config.address), config.port);
             
             //acceptor is used for accepting new socket connections.
             if(!acceptor)
