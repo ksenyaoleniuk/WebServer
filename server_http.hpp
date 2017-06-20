@@ -1,13 +1,11 @@
 #ifndef SERVER_HTTP_HPP
 #define	SERVER_HTTP_HPP
-
 #include <map>
 #include <unordered_map>
 #include <thread>
 #include <functional>
 #include <iostream>
 #include <sstream>
-
 #include <boost/asio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/functional/hash.hpp>
@@ -45,11 +43,6 @@ namespace SimpleWeb {
     };
 }
 # endif
-
-#include <regex>
-namespace SimpleWeb {
-    namespace regex = std;
-}
 
 #ifndef DEPRECATED
 #ifdef __GNUC__
@@ -117,7 +110,6 @@ namespace SimpleWeb {
 
             std::unordered_multimap<std::string, std::string, CaseInsensitiveHash, CaseInsensitiveEqual> header;
 
-            regex::smatch path_match;
             
             std::string remote_endpoint_address;
             unsigned short remote_endpoint_port;
@@ -125,13 +117,9 @@ namespace SimpleWeb {
            
         private:
             Request(const socket_type &socket): content(streambuf) {
-                try {
                     remote_endpoint_address=socket.lowest_layer().remote_endpoint().address().to_string();
                     remote_endpoint_port=socket.lowest_layer().remote_endpoint().port();
-                }
-                catch(...) {}
             }
-            
             asio::streambuf streambuf;
         };
         
@@ -140,7 +128,7 @@ namespace SimpleWeb {
 
             Config(unsigned short port): port(port) {}
         public:
-            /// Port number to use. Defaults to 80 for HTTP and 443 for HTTPS.
+            /// Port number to use. Defaults to 80 for HTTP.
             unsigned short port;
             /// Number of threads that the server will use when start() is called. Defaults to 1 thread.
             size_t thread_pool_size=1;
@@ -157,27 +145,14 @@ namespace SimpleWeb {
         ///Set before calling start().
         Config config;
         
-    private:
-        class regex_orderable : public regex::regex {
-            std::string str;
-        public:
-            regex_orderable(const char *regex_cstr) : regex::regex(regex_cstr), str(regex_cstr) {}
-            regex_orderable(const std::string &regex_str) : regex::regex(regex_str), str(regex_str) {}
-            bool operator<(const regex_orderable &rhs) const {
-                return str<rhs.str;
-            }
-        };
+   
     public:
         /// Warning: do not add or remove resources after start() is called
-        std::map<regex_orderable, std::map<std::string,
-            std::function<void(std::shared_ptr<typename ServerBase<socket_type>::Response>, std::shared_ptr<typename ServerBase<socket_type>::Request>)> > > resource;
         
         std::map<std::string,
             std::function<void(std::shared_ptr<typename ServerBase<socket_type>::Response>, std::shared_ptr<typename ServerBase<socket_type>::Request>)> > default_resource;
         
         std::function<void(std::shared_ptr<typename ServerBase<socket_type>::Request>, const error_code&)> on_error;
-        
-        std::function<void(std::shared_ptr<socket_type> socket, std::shared_ptr<typename ServerBase<socket_type>::Request>)> on_upgrade;
         
         virtual void start() {
             if(!io_service)
@@ -354,27 +329,8 @@ namespace SimpleWeb {
             return true;
         }
 
-        void find_resource(const std::shared_ptr<socket_type> &socket, const std::shared_ptr<Request> &request) {
-            //Upgrade connection
-            if(on_upgrade) {
-                auto it=request->header.find("Upgrade");
-                if(it!=request->header.end()) {
-                    on_upgrade(socket, request);
-                    return;
-                }
-            }
+        void find_resource(const std::shared_ptr<socket_type> &socket, const std::shared_ptr<Request> &request) {          
             //Find path- and method-match, and call write_response
-            for(auto &regex_method: resource) {
-                auto it=regex_method.second.find(request->method);
-                if(it!=regex_method.second.end()) {
-                    regex::smatch sm_res;
-                    if(regex::regex_match(request->path, sm_res, regex_method.first)) {
-                        request->path_match=std::move(sm_res);
-                        write_response(socket, request, it->second);
-                        return;
-                    }
-                }
-            }
             auto it=default_resource.find(request->method);
             if(it!=default_resource.end()) {
                 write_response(socket, request, it->second);
