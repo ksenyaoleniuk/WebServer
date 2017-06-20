@@ -168,6 +168,8 @@ namespace SimpleWeb {
             else
                 endpoint=asio::ip::tcp::endpoint(asio::ip::tcp::v4(), config.port);
             
+            
+            //acceptor is used for accepting new socket connections.
             if(!acceptor)
                 acceptor=std::unique_ptr<asio::ip::tcp::acceptor>(new asio::ip::tcp::acceptor(*io_service));
             acceptor->open(endpoint.protocol());
