@@ -172,9 +172,12 @@ namespace SimpleWeb {
             //acceptor is used for accepting new socket connections.
             if(!acceptor)
                 acceptor=std::unique_ptr<asio::ip::tcp::acceptor>(new asio::ip::tcp::acceptor(*io_service));
+            //Open the acceptor using the protocol.
             acceptor->open(endpoint.protocol());
             acceptor->set_option(asio::socket_base::reuse_address(config.reuse_address));
+            //Bind the acceptor to the given local endpoint.
             acceptor->bind(endpoint);
+            //Place the acceptor into the state where it will listen for new connections.
             acceptor->listen();
      
             accept(); 
