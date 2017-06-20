@@ -61,11 +61,12 @@ namespace SimpleWeb {
     template <class socket_type>
     class ServerBase {
     public:
+    //virtual functionis an inheritable and overridable function for which dynamic dispatch is facilitated
         virtual ~ServerBase() {}
 
         class Response : public std::ostream {
             friend class ServerBase<socket_type>;
-
+            //буфер для работы с вводом/выводом
             asio::streambuf streambuf;
 
             std::shared_ptr<socket_type> socket;
